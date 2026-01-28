@@ -1,12 +1,12 @@
 'use server';
 
-import { db } from '@/lib/db';
-import { calculations } from '@/lib/db/schema';
+import { db } from '@/lib/db'; 
+import { calculations } from '@/lib/db/schema'; // Importing your specific table
 import { UserProfile } from '@/lib/calculator';
 
 export interface LeadContactData {
   name: string;
-  age: string; // Keeping as string to handle form input easily, we parse later
+  age: string;
   email: string;
   phone: string;
 }
@@ -14,33 +14,52 @@ export interface LeadContactData {
 export async function saveLeadAction(
   profile: UserProfile, 
   contact: LeadContactData, 
-  estimatedGross: number
+  annualSavings: string | number
 ) {
   try {
-    if (!profile.qualification || !contact.email) return { success: false };
-
+    // 1. Create the database record matching YOUR schema
     await db.insert(calculations).values({
-      // Job Profile
+      // Lead Profile
       qualification: profile.qualification,
-      yearsExperience: profile.yearsExperience,
+      yearsExperience: profile.yearsExperience, // Maps to 'years_experience'
       married: profile.married,
-      numChildren: profile.numChildren,
-      
-      // Contact Info
+      numChildren: profile.numChildren,         // Maps to 'num_children'
+
+      // Contact Details
       name: contact.name,
-      age: parseInt(contact.age) || 0,
+      age: parseInt(contact.age) || 0,          // Safety check for integer
       email: contact.email,
       phone: contact.phone,
 
-      // Result
-      estimatedGrossEth: estimatedGross,
+      // Results: Storing the flexible data (City + Savings) in JSONB
+      // because your schema doesn't have specific columns for them yet.
+      rawResult: {
+        selectedCity: profile.selectedCity,
+        projectedSavings: annualSavings.toString()
+      },
+      
+      // Let the DB handle 'timestamp' with defaultNow()
     });
 
-    console.log(`[Lead Gen] New Lead: ${contact.name} (${contact.email})`);
+    // 2. THE RICH LOG (Informative & Easy to Read)
+    console.log(`
+    =================================================
+    [NEW LEAD GENERATED] 
+    Name:      ${contact.name} (${contact.age} yrs)
+    Qual:      ${profile.qualification}
+    Exp:       ${profile.yearsExperience} Years
+    City:      ${profile.selectedCity}
+    Potential: ${annualSavings} / yr
+    Phone:     ${contact.phone}
+    Email:     ${contact.email}
+    =================================================
+    `);
+
     return { success: true };
 
   } catch (error) {
-    console.error('Failed to save lead:', error);
+    console.error("❌ [LEAD ERROR] Failed to save lead:", error);
+    console.error("Attempted Data:", { ...contact, ...profile });
     return { success: false };
   }
 }
