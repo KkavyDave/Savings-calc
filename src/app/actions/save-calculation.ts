@@ -2,34 +2,45 @@
 
 import { db } from '@/lib/db';
 import { calculations } from '@/lib/db/schema';
-import { UserScenario, CITY_OPTS } from '@/lib/calculator';
+import { UserProfile } from '@/lib/calculator';
 
-export async function saveCalculationAction(data: UserScenario, savingsEur: number) {
+export interface LeadContactData {
+  name: string;
+  age: string; // Keeping as string to handle form input easily, we parse later
+  email: string;
+  phone: string;
+}
+
+export async function saveLeadAction(
+  profile: UserProfile, 
+  contact: LeadContactData, 
+  estimatedGross: number
+) {
   try {
-    // 1. Sanity Check: Don't save empty/spam clicks
-    if (!data || data.grossAnnualEth < 10000) {
-      return { success: false };
-    }
+    if (!profile.qualification || !contact.email) return { success: false };
 
-    // 2. Save to Neon
     await db.insert(calculations).values({
-      role: data.role,
-      grossIncome: data.grossAnnualEth,
-      city: data.city,
-      married: data.married,
-      partnerWorks: data.partnerWorks,
-      kids: data.numChildren,
-      taxClass: data.taxClass,
-      netSavingsEur: savingsEur, // Saving the result!
-      rawScenario: data, // Saving the full JSON object
+      // Job Profile
+      qualification: profile.qualification,
+      yearsExperience: profile.yearsExperience,
+      married: profile.married,
+      numChildren: profile.numChildren,
+      
+      // Contact Info
+      name: contact.name,
+      age: parseInt(contact.age) || 0,
+      email: contact.email,
+      phone: contact.phone,
+
+      // Result
+      estimatedGrossEth: estimatedGross,
     });
 
-    console.log(`[Analytics] Saved: ${data.role} in ${data.city} (€${savingsEur}/mo)`);
+    console.log(`[Lead Gen] New Lead: ${contact.name} (${contact.email})`);
     return { success: true };
 
   } catch (error) {
-    console.error('Failed to save calculation:', error);
-    // Return success:false but don't crash the app
+    console.error('Failed to save lead:', error);
     return { success: false };
   }
 }

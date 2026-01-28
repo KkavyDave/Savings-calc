@@ -3,22 +3,22 @@ import { pgTable, serial, text, integer, boolean, timestamp, jsonb } from 'drizz
 export const calculations = pgTable('calculations', {
   id: serial('id').primaryKey(),
   
-  // User Profile
-  role: text('role').notNull(),
-  grossIncome: integer('gross_income').notNull(),
-  city: text('city').notNull(),
-  
-  // Family Config
+  // Lead Profile (Job Context)
+  qualification: text('qualification').notNull(),
+  yearsExperience: integer('years_experience').notNull(),
   married: boolean('married').default(false),
-  partnerWorks: boolean('partner_works').default(false),
-  kids: integer('kids').default(0),
-  taxClass: integer('tax_class'),
+  numChildren: integer('num_children').default(0),
 
-  // The Reality Result (What we calculated)
-  netSavingsEur: integer('net_savings_eur'),
+  // NEW: Contact Details (Lead Gen)
+  name: text('name'),
+  age: integer('age'),
+  email: text('email'),
+  phone: text('phone'),
+
+  // Results
+  estimatedGrossEth: integer('estimated_gross_eur'), 
   
   // Metadata
   timestamp: timestamp('created_at').defaultNow(),
-  // Full raw data dump (useful if you change logic later and want to re-run analysis)
-  rawScenario: jsonb('raw_scenario'),
+  rawResult: jsonb('raw_result'),
 });

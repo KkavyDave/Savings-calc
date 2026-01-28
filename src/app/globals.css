@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Exact Brand Colors from your website */
+  --brand-blue: #7282F3;   /* The Hero Section Background */
+  --brand-navy: #1F2536;   /* The Logo/Heading Text */
+  --brand-dark: #0F172A;   /* The 'Enquire Now' Button */
+  --bg-color: #F8F9FC;     /* Light Gray Page Background */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--brand-navy);
+  background-color: var(--bg-color);
+  font-family: var(--font-albert), sans-serif;
+}
+
+/* Custom Range Slider (Brand Blue) */
+input[type="range"] {
+  accent-color: var(--brand-blue);
+}
+
+/* Smooth Fade In Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
 }

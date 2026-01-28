@@ -1,268 +1,309 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { UserScenario, CITY_OPTS, CityName } from '@/lib/calculator';
+import { useState } from 'react';
+import Image from 'next/image';
+import { calculateSimpleRange, UserProfile, RangeResult, CITY_OPTS } from '@/lib/calculator';
+// Fixed import path to match standard Next.js alias
+import { saveLeadAction, LeadContactData } from '@/src/app/actions/save-calculation';
 import { 
-  Euro, MapPin, Users, Utensils, 
-  Sparkles, ShieldCheck, BriefcaseMedical, Church, ChevronDown, HeartHandshake 
+  GraduationCap, Briefcase, 
+  Loader2, Lock, Wallet, Building2, 
+  CheckCircle2, X, ArrowRight 
 } from 'lucide-react';
 
-interface CalculatorFormProps {
-  onUpdate: (data: UserScenario) => void;
-}
+export default function LeadGenCalculator() {
+  // --- STATES ---
+  const [profile, setProfile] = useState<UserProfile>({
+    qualification: 'BSC Nursing',
+    yearsExperience: 3,
+    married: false,
+    numChildren: 0,
+    selectedCity: CITY_OPTS[1] // Default
+  });
 
-export default function CalculatorForm({ onUpdate }: CalculatorFormProps) {
-  // Income State
-  const [role, setRole] = useState<'Nurse' | 'Doctor'>('Nurse');
-  const [salary, setSalary] = useState(48000);
-  
-  // Location
-  const [city, setCity] = useState<CityName>('Berlin'); 
-  
-  // Family & Tax State
-  const [married, setMarried] = useState(false);
-  const [partnerWorks, setPartnerWorks] = useState(false);
-  const [kids, setKids] = useState(0);
-  const [church, setChurch] = useState(false);
-  
-  // Lifestyle State
-  const [maid, setMaid] = useState<'None' | 'Weekly (4h)' | 'Regular (10h)'>('None');
-  const [eating, setEating] = useState<'Rarely' | 'Weekly' | 'Frequent'>('Weekly');
-  const [insurance, setInsurance] = useState<'Public' | 'Private'>('Public');
-  const [useCustomFood, setUseCustomFood] = useState(false);
-  const [foodBudget, setFoodBudget] = useState(600);
+  const [leadData, setLeadData] = useState<LeadContactData>({
+    name: '', age: '', email: '', phone: ''
+  });
 
-  const minSal = role === 'Nurse' ? 15000 : 55000;
-  const maxSal = role === 'Nurse' ? 50000 : 350000;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [result, setResult] = useState<RangeResult | null>(null);
+  const [hasUnlocked, setHasUnlocked] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    onUpdate({
-      role,
-      grossAnnualEth: salary,
-      // Tax class logic is handled in lib/calculator, but we pass raw state
-      taxClass: married ? (partnerWorks ? 4 : 3) : 1, 
-      married, 
-      partnerWorks, 
-      hasChildren: kids > 0,
-      numChildren: kids,
-      city,
-      maidService: maid,
-      eatingOut: eating,
-      healthInsurance: insurance,
-      useCustomFood,      
-      customFoodBudget: foodBudget,
-      isChurchMember: church 
-    });
-  }, [salary, city, married, partnerWorks, kids, maid, eating, insurance, role, useCustomFood, foodBudget, church, onUpdate]);
+  // --- HANDLERS ---
+  
+  const handleInitialClick = () => {
+    const previewData = calculateSimpleRange(profile);
+    setResult(previewData); 
+    setIsModalOpen(true);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (parseInt(leadData.age) < 18 || parseInt(leadData.age) > 65) {
+        alert("Please enter a valid working age (18-65).");
+        return;
+    }
+
+    setLoading(true);
+    
+    // We save the lead
+    await saveLeadAction(profile, leadData, 0); 
+
+    setTimeout(() => {
+      setLoading(false);
+      setHasUnlocked(true);
+      setIsModalOpen(false);
+    }, 800);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // WhatsApp Handler
+  const handleWhatsAppClick = () => {
+    if (!result) return;
+    const text = `Hi Taldo! I checked my salary potential for ${result.calculatedCity}. It shows I can save ${result.annualSavingsLakhs}/year. I want to start my Germany journey!`;
+    window.open(`https://wa.me/919818956623?text=${encodeURIComponent(text)}`, '_blank');
+  };
 
   return (
-    <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 space-y-10">
+    <div className="min-h-screen bg-[#F8F9FC] font-sans pb-20">
       
-      {/* SECTION 1: INCOME */}
-      <section className="space-y-6">
-        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
-          <BriefcaseMedical className="w-5 h-5 text-blue-600" /> PROFESSIONAL PROFILE
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
-          {['Nurse', 'Doctor'].map((r) => (
-            <button
-              key={r}
-              onClick={() => { setRole(r as any); setSalary(r === 'Nurse' ? 45000 : 75000); }}
-              className={`py-4 rounded-2xl font-bold transition-all border-2 ${
-                role === r ? 'bg-blue-50 border-blue-600 text-blue-700' : 'border-slate-100 text-slate-400'
-              }`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-        <div>
-          <div className="flex justify-between mb-4">
-            <span className="text-sm font-bold text-slate-500 uppercase">Annual Gross Offer</span>
-            <span className="text-2xl font-black text-blue-600">€{salary.toLocaleString()}</span>
-          </div>
-          <input
-            type="range" min={minSal} max={maxSal} step={1000} value={salary}
-            onChange={(e) => setSalary(Number(e.target.value))}
-            className="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
-          />
-        </div>
-      </section>
-
-      {/* SECTION 2: LIFESTYLE */}
-      <section className="space-y-6 border-t border-slate-50 pt-8">
-        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-purple-600" /> LIFESTYLE CHOICES
-        </h2>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-end">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Target City</label>
-            <span className="text-[10px] text-blue-500 font-semibold bg-blue-50 px-2 py-1 rounded">
-              *Rent & Childcare scale by city tier
-            </span>
-          </div>
-          <div className="relative">
-            <select
-              value={city}
-              onChange={(e) => setCity(e.target.value as CityName)}
-              className="w-full p-4 pr-10 appearance-none bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-            >
-              {Object.keys(CITY_OPTS).sort().map((c) => (
-                 <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+      {/* HERO */}
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
+        <div className="bg-[#7282F3] rounded-[2.5rem] p-8 md:p-12 text-center text-white relative overflow-hidden shadow-2xl">
+          <div className="relative z-10 max-w-3xl mx-auto space-y-4">
+            <h1 className="text-3xl md:text-5xl font-bold leading-tight">
+              German Nursing Salary Check
+            </h1>
+            <p className="text-lg text-white/90 font-medium">
+              Calculate your exact earning potential in 2026 based on your experience.
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Food Budget */}
-        <div className="space-y-4 p-4 bg-orange-50 rounded-2xl border border-orange-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Utensils className="w-4 h-4 text-orange-600" />
-              <label className="text-sm font-bold text-orange-800">Custom Food Budget?</label>
-            </div>
-            <button 
-              onClick={() => setUseCustomFood(!useCustomFood)}
-              className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${useCustomFood ? 'bg-orange-500' : 'bg-slate-300'}`}
-            >
-              <div className={`w-4 h-4 bg-white rounded-full transition-transform ${useCustomFood ? 'translate-x-4' : ''}`} />
-            </button>
-          </div>
-          {useCustomFood ? (
+      {/* CALCULATOR INPUT CARD */}
+      <div className="max-w-4xl mx-auto px-4 -mt-10 relative z-20">
+        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-6 md:p-10">
+          
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            {/* Qualification */}
             <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold text-orange-600">
-                <span>Monthly Food & Grocery</span>
-                <span>€{foodBudget}</span>
-              </div>
-              <input 
-                type="range" min="200" max="2000" step="50"
-                value={foodBudget}
-                onChange={(e) => setFoodBudget(Number(e.target.value))}
-                className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-2">
-              {['Rarely', 'Weekly', 'Frequent'].map((e) => (
-                <button
-                  key={e} onClick={() => setEating(e as any)}
-                  className={`py-2 text-xs rounded-xl font-bold border transition-all ${
-                    eating === e ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-slate-500 border-slate-200'
-                  }`}
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Maid */}
-        <div className="space-y-3">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Maid / Domestic Help</label>
-          <div className="grid grid-cols-3 gap-2">
-            {['None', 'Weekly (4h)', 'Regular (10h)'].map((m) => (
-              <button
-                key={m} onClick={() => setMaid(m as any)}
-                className={`py-2 text-xs rounded-xl font-bold border transition-all ${
-                  maid === m ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-slate-500 border-slate-200'
-                }`}
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#7282F3]">
+                <GraduationCap className="w-4 h-4" /> Qualification
+              </label>
+              <select 
+                className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#7282F3] outline-none font-bold text-slate-700 appearance-none"
+                value={profile.qualification}
+                onChange={(e) => setProfile({...profile, qualification: e.target.value as any})}
               >
-                {m}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+                <option value="BSC Nursing">B.Sc Nursing</option>
+                <option value="MSC Nursing">M.Sc Nursing</option>
+                <option value="GNM Nursing">GNM Diploma</option>
+                <option value="Post BSC Nursing">Post Basic B.Sc</option>
+              </select>
+            </div>
 
-      {/* SECTION 3: TAX & REALITY */}
-      <section className="space-y-6 border-t border-slate-50 pt-8">
-        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-emerald-600" /> TAX & REALITY
-        </h2>
-        
-        <div className="grid grid-cols-2 gap-4">
-             {/* Married */}
-             <div className="p-3 bg-slate-50 rounded-xl flex flex-col justify-between">
-                <span className="text-xs font-bold text-slate-500">Married?</span>
-                <button 
-                  onClick={() => { setMarried(!married); if(married) setPartnerWorks(false); }}
-                  className={`w-10 h-6 rounded-full self-end transition-colors flex items-center px-0.5 ${married ? 'bg-blue-600' : 'bg-slate-300'}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${married ? 'translate-x-4' : ''}`} />
-                </button>
-             </div>
-             
-             {/* Kids */}
-             <div className="p-3 bg-slate-50 rounded-xl space-y-2">
-                <span className="text-xs font-bold text-slate-500">Children</span>
-                <div className="flex items-center justify-between bg-white rounded-lg px-2">
-                   <button onClick={() => setKids(Math.max(0, kids - 1))} className="text-lg font-bold text-slate-400">-</button>
-                   <span className="font-bold text-slate-800">{kids}</span>
-                   <button onClick={() => setKids(kids + 1)} className="text-lg font-bold text-blue-600">+</button>
+            {/* City Selection */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#7282F3]">
+                <Building2 className="w-4 h-4" /> Dream Location
+              </label>
+              <select 
+                className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#7282F3] outline-none font-bold text-slate-700 appearance-none"
+                value={profile.selectedCity}
+                onChange={(e) => setProfile({...profile, selectedCity: e.target.value})}
+              >
+                {CITY_OPTS.map(tier => (
+                  <option key={tier} value={tier}>{tier}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Experience */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#7282F3]">
+                <Briefcase className="w-4 h-4" /> Experience (India)
+              </label>
+              <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-100">
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-2xl font-bold text-slate-800">{profile.yearsExperience}</span>
+                  <span className="text-xs font-bold text-slate-400 mb-1 uppercase">Years</span>
                 </div>
-             </div>
-        </div>
-
-        {/* Partner Works Toggle */}
-        {married && (
-          <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-2xl animate-in fade-in slide-in-from-top-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-                 <HeartHandshake className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-bold text-blue-900 text-sm">Partner Works?</p>
-                <p className="text-[10px] text-blue-700 leading-tight">Switches you to Tax Class 4 (Higher Tax).</p>
+                <input 
+                  type="range" min="0" max="15" step="1"
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                  style={{ accentColor: '#7282F3' }}
+                  value={profile.yearsExperience}
+                  onChange={(e) => setProfile({...profile, yearsExperience: parseInt(e.target.value)})}
+                />
               </div>
             </div>
-            <button 
-              onClick={() => setPartnerWorks(!partnerWorks)}
-              className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${partnerWorks ? 'bg-blue-600' : 'bg-slate-300'}`}
-            >
-              <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${partnerWorks ? 'translate-x-4' : ''}`} />
-            </button>
-          </div>
-        )}
 
-        {/* Church Tax */}
-        <div className="flex items-center justify-between p-4 bg-rose-50 border border-rose-100 rounded-2xl">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-rose-100 rounded-lg text-rose-600">
-               <Church className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-bold text-rose-900 text-sm">Church Member?</p>
-              <p className="text-[10px] text-rose-700 leading-tight">Registers you for extra tax (8-9%).</p>
+            {/* Toggles */}
+            <div className="md:col-span-2 grid grid-cols-2 gap-4">
+               <div className="flex bg-slate-50 p-1.5 rounded-xl border border-slate-100">
+                  <button onClick={() => setProfile({...profile, married: false})} className={`flex-1 rounded-lg text-sm font-bold transition-all ${!profile.married ? 'bg-white shadow-sm text-[#7282F3]' : 'text-slate-400'}`}>Single</button>
+                  <button onClick={() => setProfile({...profile, married: true})} className={`flex-1 rounded-lg text-sm font-bold transition-all ${profile.married ? 'bg-white shadow-sm text-[#7282F3]' : 'text-slate-400'}`}>Married</button>
+               </div>
+               <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-100 px-4">
+                  <span className="text-xs font-bold text-slate-400 uppercase">Kids</span>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setProfile({...profile, numChildren: Math.max(0, profile.numChildren - 1)})} className="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-slate-500">-</button>
+                    <span className="font-bold text-slate-800">{profile.numChildren}</span>
+                    <button onClick={() => setProfile({...profile, numChildren: profile.numChildren + 1})} className="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-slate-500">+</button>
+                  </div>
+               </div>
             </div>
           </div>
+
           <button 
-            onClick={() => setChurch(!church)}
-            className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${church ? 'bg-rose-500' : 'bg-slate-300'}`}
+            onClick={handleInitialClick}
+            className="w-full bg-[#1F2536] text-white font-bold py-5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 text-lg hover:scale-[1.01]"
           >
-            <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${church ? 'translate-x-4' : ''}`} />
+            Calculate My Potential
+            <ArrowRight className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Health Insurance */}
-        <div className="space-y-2">
-           <label className="text-xs font-bold text-slate-400 uppercase">Health Insurance</label>
-           <div className="flex bg-slate-100 p-1 rounded-xl">
-             {['Public', 'Private'].map((i) => (
-               <button
-                 key={i} onClick={() => setInsurance(i as any)}
-                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                   insurance === i ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'
-                 }`}
-               >
-                 {i}
-               </button>
-             ))}
-           </div>
+        {/* --- RESULT SECTION --- */}
+        {result && (isModalOpen || hasUnlocked) && (
+          <div className="mt-12 px-4 relative">
+            
+            <div className={`transition-all duration-700 ease-in-out ${isModalOpen ? 'blur-lg grayscale opacity-50 select-none pointer-events-none scale-95' : 'blur-0 opacity-100 scale-100 animate-in fade-in slide-in-from-bottom-8'}`}>
+              
+              <div className="bg-white rounded-[2.5rem] border border-[#7282F3]/20 shadow-2xl overflow-hidden relative max-w-5xl mx-auto">
+                
+                {/* Top Banner */}
+                <div className="bg-[#Eef2ff] p-6 text-center border-b border-[#7282F3]/10">
+                  <h2 className="text-xl font-bold text-[#1F2536]">
+                    Your Potential in <span className="text-[#7282F3]">{result.calculatedCity.split('(')[0]}</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">{result.calculatedCity.split('(')[1]?.replace(')', '')}</p>
+                </div>
+
+                <div className="p-8 md:p-12 grid md:grid-cols-2 gap-12 items-center">
+                    
+                    {/* Left: Salary Ranges */}
+                    <div className="space-y-8">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Wallet className="w-5 h-5 text-[#7282F3]" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Annual Gross Salary</span>
+                        </div>
+                        <div className="flex items-baseline gap-2 flex-nowrap">
+                          <span className="text-2xl md:text-4xl font-extrabold text-[#1F2536] whitespace-nowrap">
+                            {result.grossRange}
+                          </span>
+                          <span className="text-lg text-slate-400 font-medium whitespace-nowrap">/ yr</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">Total package before tax</p>
+                      </div>
+
+                      <div className="h-px bg-slate-100 w-full"></div>
+
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Annual Net Salary</span>
+                        </div>
+                        <div className="flex items-baseline gap-2 flex-nowrap">
+                          <span className="text-2xl md:text-4xl font-extrabold text-emerald-600 whitespace-nowrap">
+                            {result.netRange}
+                          </span>
+                          <span className="text-lg text-emerald-400 font-medium whitespace-nowrap">/ yr</span>
+                        </div>
+                        <p className="text-xs text-emerald-400/80 mt-1">Cash in hand after all taxes</p>
+                      </div>
+                    </div>
+
+                    {/* Right: The Dream (ANNUAL SAVINGS) */}
+                    <div className="bg-[#1F2536] rounded-3xl p-8 text-white text-center relative overflow-hidden flex flex-col justify-center min-h-[250px]">
+                      <div className="absolute top-0 left-0 w-full h-full bg-[#7282F3]/10"></div>
+                      <div className="relative z-10">
+                        <p className="text-sm font-medium text-white/60 uppercase tracking-widest mb-4">Potential Annual Savings</p>
+                        
+                        <div className="text-4xl md:text-5xl font-bold mb-2 text-[#7282F3]">
+                          {result.annualSavingsLakhs}
+                        </div>
+                        
+                        {/* Fixed Spacing: mb-6 instead of mb-8 */}
+                        <p className="text-sm text-white/80 opacity-75 mb-6">
+                          (Total Savings per Year)
+                        </p>
+                        
+                        {/* SIMPLE WHATSAPP BUTTON (Fixed Spacing: added mb-4, added !) */}
+                        <button 
+                          onClick={handleWhatsAppClick}
+                          className="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-bold py-4 px-6 rounded-2xl hover:from-[#20bd5a] hover:to-[#0e7a6e] transition-all duration-300 text-center text-lg shadow-xl shadow-[#25D366]/20 hover:shadow-[#25D366]/40 hover:-translate-y-1 mb-4"
+                        >
+                          Chat with our Career Counsellor on WhatsApp!
+                        </button>
+                        
+                        {/* HIGH ENERGY BOLD TEXT (Fixed Spacing: removed mt-4, added !) */}
+                        <p className="text-xs md:text-sm font-extrabold text-white uppercase tracking-wider animate-pulse drop-shadow-md">
+                           START YOUR GERMANY JOURNEY NOW!
+                        </p>
+                      </div>
+                    </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 text-center">
+                <p className="text-[10px] md:text-xs text-slate-400 max-w-2xl mx-auto leading-relaxed px-4">
+                  *Disclaimer: These figures are estimates based on projected 2026 TVöD-P tariffs and optimized living costs (thrifty lifestyle). 
+                  Actual savings will vary based on your specific tax class, lifestyle choices, and exact hospital location. 
+                  This tool provides a simulation for planning purposes only.
+                </p>
+              </div>
+
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* LEAD GEN MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1F2536]/60 backdrop-blur-[2px] animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative animate-in zoom-in-95 duration-200">
+             <button onClick={handleCloseModal} className="absolute top-4 right-4 text-slate-300 hover:text-slate-500"><X className="w-6 h-6" /></button>
+             
+             <div className="text-center mb-6">
+               <div className="w-12 h-12 bg-[#Eef2ff] rounded-full flex items-center justify-center mx-auto mb-3">
+                 <Lock className="w-6 h-6 text-[#7282F3]" />
+               </div>
+               <h3 className="text-2xl font-bold text-slate-800">Unlock Result</h3>
+               <p className="text-sm text-slate-500 mt-1">Enter details to see your 2026 forecast.</p>
+             </div>
+
+             <form onSubmit={handleFormSubmit} className="space-y-4">
+                <input required placeholder="Full Name" value={leadData.name} onChange={e => setLeadData({...leadData, name: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7282F3]" />
+                <div className="grid grid-cols-2 gap-4">
+                   <input 
+                      required 
+                      type="number" 
+                      min="18" 
+                      max="65" 
+                      placeholder="Age" 
+                      value={leadData.age} 
+                      onChange={e => setLeadData({...leadData, age: e.target.value})} 
+                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7282F3]" 
+                   />
+                   <input required type="tel" placeholder="Phone" value={leadData.phone} onChange={e => setLeadData({...leadData, phone: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7282F3]" />
+                </div>
+                <input required type="email" placeholder="Email Address" value={leadData.email} onChange={e => setLeadData({...leadData, email: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7282F3]" />
+                <button type="submit" disabled={loading} className="w-full bg-[#7282F3] text-white font-bold py-4 rounded-xl mt-2 shadow-lg shadow-blue-500/20">
+                  {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Reveal Results'}
+                </button>
+             </form>
+          </div>
         </div>
-      </section>
+      )}
 
     </div>
   );
