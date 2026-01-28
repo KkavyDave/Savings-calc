@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db'; 
-import { calculations } from '@/lib/db/schema'; // Importing your specific table
+import { calculations } from '@/lib/db/schema'; 
 import { UserProfile } from '@/lib/calculator';
 
 export interface LeadContactData {
@@ -9,6 +9,7 @@ export interface LeadContactData {
   age: string;
   email: string;
   phone: string;
+  state: string; // <-- Added this
 }
 
 export async function saveLeadAction(
@@ -17,38 +18,36 @@ export async function saveLeadAction(
   annualSavings: string | number
 ) {
   try {
-    // 1. Create the database record matching YOUR schema
     await db.insert(calculations).values({
       // Lead Profile
       qualification: profile.qualification,
-      yearsExperience: profile.yearsExperience, // Maps to 'years_experience'
+      yearsExperience: profile.yearsExperience,
       married: profile.married,
-      numChildren: profile.numChildren,         // Maps to 'num_children'
+      numChildren: profile.numChildren,
 
       // Contact Details
       name: contact.name,
-      age: parseInt(contact.age) || 0,          // Safety check for integer
+      age: parseInt(contact.age) || 0,
       email: contact.email,
       phone: contact.phone,
 
-      // Results: Storing the flexible data (City + Savings) in JSONB
-      // because your schema doesn't have specific columns for them yet.
+      // Results & Extra Data (Storing State here!)
       rawResult: {
         selectedCity: profile.selectedCity,
-        projectedSavings: annualSavings.toString()
+        projectedSavings: annualSavings.toString(),
+        originState: contact.state // <-- SAVED HERE
       },
-      
-      // Let the DB handle 'timestamp' with defaultNow()
     });
 
-    // 2. THE RICH LOG (Informative & Easy to Read)
+    // RICH LOGGING (Updated with State)
     console.log(`
     =================================================
     [NEW LEAD GENERATED] 
     Name:      ${contact.name} (${contact.age} yrs)
+    Origin:    ${contact.state} (India)
     Qual:      ${profile.qualification}
     Exp:       ${profile.yearsExperience} Years
-    City:      ${profile.selectedCity}
+    Dest:      ${profile.selectedCity}
     Potential: ${annualSavings} / yr
     Phone:     ${contact.phone}
     Email:     ${contact.email}
@@ -59,7 +58,6 @@ export async function saveLeadAction(
 
   } catch (error) {
     console.error("❌ [LEAD ERROR] Failed to save lead:", error);
-    console.error("Attempted Data:", { ...contact, ...profile });
     return { success: false };
   }
 }

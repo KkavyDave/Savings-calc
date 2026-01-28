@@ -8,8 +8,17 @@ import { saveLeadAction, LeadContactData } from '@/src/app/actions/save-calculat
 import { 
   GraduationCap, Briefcase, 
   Loader2, Lock, Wallet, Building2, 
-  CheckCircle2, X, ArrowRight 
+  CheckCircle2, X, ArrowRight, MapPin
 } from 'lucide-react';
+
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", 
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", 
+  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", 
+  "Delhi", "Jammu & Kashmir", "Ladakh", "Puducherry"
+];
 
 export default function LeadGenCalculator() {
   // --- STATES ---
@@ -22,7 +31,7 @@ export default function LeadGenCalculator() {
   });
 
   const [leadData, setLeadData] = useState<LeadContactData>({
-    name: '', age: '', email: '', phone: ''
+    name: '', age: '', email: '', phone: '', state: '' 
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,13 +55,17 @@ export default function LeadGenCalculator() {
         alert("Please enter a valid working age (18-65).");
         return;
     }
+    if (!leadData.state) {
+        alert("Please select your state.");
+        return;
+    }
 
     setLoading(true);
 
-    // 1. Calculate the result right now so we have the data to save
+    // 1. Calculate the result right now
     const currentResult = calculateSimpleRange(profile);
     
-    // 2. Send the REAL savings string (e.g., "₹11.6 - ₹18.3 Lakhs")
+    // 2. Send the data (including the new State)
     await saveLeadAction(profile, leadData, currentResult.annualSavingsLakhs); 
 
     setTimeout(() => {
@@ -74,34 +87,34 @@ export default function LeadGenCalculator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] font-sans pb-20">
+    <div className="min-h-screen bg-[#F8F9FC] font-sans pb-20 text-slate-600">
       
-      {/* HERO */}
-      <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
-        <div className="bg-[#7282F3] rounded-[2.5rem] p-8 md:p-12 text-center text-white relative overflow-hidden shadow-2xl">
-          <div className="relative z-10 max-w-3xl mx-auto space-y-4">
-            <h1 className="text-3xl md:text-5xl font-bold leading-tight">
+      {/* HERO (Refined Size) */}
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <div className="bg-[#7282F3] rounded-3xl p-8 md:p-10 text-center text-white shadow-xl">
+          <div className="max-w-2xl mx-auto space-y-3">
+            <h1 className="text-2xl md:text-4xl font-semibold leading-tight">
               German Nursing Salary Check
             </h1>
-            <p className="text-lg text-white/90 font-medium">
-              Calculate your exact earning potential in 2026 based on your experience.
+            <p className="text-base md:text-lg text-blue-50 font-medium">
+              Calculate your exact earning potential in 2026.
             </p>
           </div>
         </div>
       </div>
 
       {/* CALCULATOR INPUT CARD */}
-      <div className="max-w-4xl mx-auto px-4 -mt-10 relative z-20">
-        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-6 md:p-10">
+      <div className="max-w-3xl mx-auto px-4 -mt-8 relative z-20">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 md:p-8">
           
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
             {/* Qualification */}
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#7282F3]">
-                <GraduationCap className="w-4 h-4" /> Qualification
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                <GraduationCap className="w-4 h-4 text-[#7282F3]" /> Qualification
               </label>
               <select 
-                className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#7282F3] outline-none font-bold text-slate-700 appearance-none"
+                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-lg focus:border-[#7282F3] focus:ring-1 focus:ring-[#7282F3] outline-none font-medium text-slate-700 appearance-none transition-colors"
                 value={profile.qualification}
                 onChange={(e) => setProfile({...profile, qualification: e.target.value as any})}
               >
@@ -113,12 +126,12 @@ export default function LeadGenCalculator() {
             </div>
 
             {/* City Selection */}
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#7282F3]">
-                <Building2 className="w-4 h-4" /> Dream Location
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                <Building2 className="w-4 h-4 text-[#7282F3]" /> Dream Location
               </label>
               <select 
-                className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#7282F3] outline-none font-bold text-slate-700 appearance-none"
+                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-lg focus:border-[#7282F3] focus:ring-1 focus:ring-[#7282F3] outline-none font-medium text-slate-700 appearance-none transition-colors"
                 value={profile.selectedCity}
                 onChange={(e) => setProfile({...profile, selectedCity: e.target.value})}
               >
@@ -129,14 +142,14 @@ export default function LeadGenCalculator() {
             </div>
 
             {/* Experience */}
-            <div className="space-y-2 md:col-span-2">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#7282F3]">
-                <Briefcase className="w-4 h-4" /> Experience (India)
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                <Briefcase className="w-4 h-4 text-[#7282F3]" /> Experience (India)
               </label>
-              <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-100">
-                <div className="flex justify-between items-end mb-2">
-                  <span className="text-2xl font-bold text-slate-800">{profile.yearsExperience}</span>
-                  <span className="text-xs font-bold text-slate-400 mb-1 uppercase">Years</span>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-xl font-bold text-slate-700">{profile.yearsExperience} Years</span>
+                  <span className="text-xs font-medium text-slate-400 bg-white px-2 py-1 rounded border border-slate-100">Drag to adjust</span>
                 </div>
                 <input 
                   type="range" min="0" max="15" step="1"
@@ -150,16 +163,16 @@ export default function LeadGenCalculator() {
 
             {/* Toggles */}
             <div className="md:col-span-2 grid grid-cols-2 gap-4">
-               <div className="flex bg-slate-50 p-1.5 rounded-xl border border-slate-100">
-                  <button onClick={() => setProfile({...profile, married: false})} className={`flex-1 rounded-lg text-sm font-bold transition-all ${!profile.married ? 'bg-white shadow-sm text-[#7282F3]' : 'text-slate-400'}`}>Single</button>
-                  <button onClick={() => setProfile({...profile, married: true})} className={`flex-1 rounded-lg text-sm font-bold transition-all ${profile.married ? 'bg-white shadow-sm text-[#7282F3]' : 'text-slate-400'}`}>Married</button>
+               <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-200">
+                  <button onClick={() => setProfile({...profile, married: false})} className={`flex-1 rounded-md text-sm font-semibold transition-all py-2 ${!profile.married ? 'bg-white shadow-sm text-[#7282F3]' : 'text-slate-400'}`}>Single</button>
+                  <button onClick={() => setProfile({...profile, married: true})} className={`flex-1 rounded-md text-sm font-semibold transition-all py-2 ${profile.married ? 'bg-white shadow-sm text-[#7282F3]' : 'text-slate-400'}`}>Married</button>
                </div>
-               <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-100 px-4">
-                  <span className="text-xs font-bold text-slate-400 uppercase">Kids</span>
+               <div className="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 px-4">
+                  <span className="text-sm font-medium text-slate-500">Children</span>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => setProfile({...profile, numChildren: Math.max(0, profile.numChildren - 1)})} className="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-slate-500">-</button>
-                    <span className="font-bold text-slate-800">{profile.numChildren}</span>
-                    <button onClick={() => setProfile({...profile, numChildren: profile.numChildren + 1})} className="w-8 h-8 bg-white rounded-lg shadow-sm font-bold text-slate-500">+</button>
+                    <button onClick={() => setProfile({...profile, numChildren: Math.max(0, profile.numChildren - 1)})} className="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm font-bold text-slate-500 hover:text-[#7282F3]">-</button>
+                    <span className="font-bold text-slate-700 w-4 text-center">{profile.numChildren}</span>
+                    <button onClick={() => setProfile({...profile, numChildren: profile.numChildren + 1})} className="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm font-bold text-slate-500 hover:text-[#7282F3]">+</button>
                   </div>
                </div>
             </div>
@@ -167,43 +180,44 @@ export default function LeadGenCalculator() {
 
           <button 
             onClick={handleInitialClick}
-            className="w-full bg-[#1F2536] text-white font-bold py-5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 text-lg hover:scale-[1.01]"
+            className="w-full bg-[#1F2536] text-white font-semibold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-base hover:bg-[#2c344a] active:scale-[0.99]"
           >
             Calculate My Potential
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
         {/* --- RESULT SECTION --- */}
         {result && (isModalOpen || hasUnlocked) && (
-          <div className="mt-12 px-4 relative">
+          <div className="mt-8 px-2 relative">
             
-            <div className={`transition-all duration-700 ease-in-out ${isModalOpen ? 'blur-lg grayscale opacity-50 select-none pointer-events-none scale-95' : 'blur-0 opacity-100 scale-100 animate-in fade-in slide-in-from-bottom-8'}`}>
+            <div className={`transition-all duration-700 ease-in-out ${isModalOpen ? 'blur-md opacity-40 select-none pointer-events-none' : 'blur-0 opacity-100 animate-in fade-in slide-in-from-bottom-4'}`}>
               
-              <div className="bg-white rounded-[2.5rem] border border-[#7282F3]/20 shadow-2xl overflow-hidden relative max-w-5xl mx-auto">
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden relative max-w-4xl mx-auto">
                 
-                {/* Top Banner */}
-                <div className="bg-[#Eef2ff] p-6 text-center border-b border-[#7282F3]/10">
-                  <h2 className="text-xl font-bold text-[#1F2536]">
+                {/* Top Banner (Classy) */}
+                <div className="bg-slate-50/50 p-5 text-center border-b border-slate-100">
+                  <h2 className="text-lg font-semibold text-slate-800">
                     Your Potential in <span className="text-[#7282F3]">{result.calculatedCity.split('(')[0]}</span>
                   </h2>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">{result.calculatedCity.split('(')[1]?.replace(')', '')}</p>
+                  <p className="text-xs text-slate-400 mt-1">{result.calculatedCity.split('(')[1]?.replace(')', '')}</p>
                 </div>
 
-                <div className="p-8 md:p-12 grid md:grid-cols-2 gap-12 items-center">
+                <div className="p-6 md:p-10 grid md:grid-cols-2 gap-10 items-center">
                     
                     {/* Left: Salary Ranges */}
-                    <div className="space-y-8">
+                    <div className="space-y-6">
                       <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Wallet className="w-5 h-5 text-[#7282F3]" />
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Annual Gross Salary</span>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Wallet className="w-4 h-4 text-slate-400" />
+                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Annual Gross</span>
                         </div>
-                        <div className="flex items-baseline gap-2 flex-nowrap">
-                          <span className="text-2xl md:text-4xl font-extrabold text-[#1F2536] whitespace-nowrap">
+                        <div className="flex items-baseline gap-2">
+                          {/* ADDED 'whitespace-nowrap' HERE */}
+                          <span className="text-2xl md:text-3xl font-bold text-slate-800 whitespace-nowrap">
                             {result.grossRange}
                           </span>
-                          <span className="text-lg text-slate-400 font-medium whitespace-nowrap">/ yr</span>
+                          <span className="text-sm text-slate-400 font-medium whitespace-nowrap">/ year</span>
                         </div>
                         <p className="text-xs text-slate-400 mt-1">Total package before tax</p>
                       </div>
@@ -211,46 +225,45 @@ export default function LeadGenCalculator() {
                       <div className="h-px bg-slate-100 w-full"></div>
 
                       <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">Annual Net Salary</span>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Annual Net</span>
                         </div>
-                        <div className="flex items-baseline gap-2 flex-nowrap">
-                          <span className="text-2xl md:text-4xl font-extrabold text-emerald-600 whitespace-nowrap">
+                        <div className="flex items-baseline gap-2">
+                          {/* ADDED 'whitespace-nowrap' HERE */}
+                          <span className="text-2xl md:text-3xl font-bold text-emerald-600 whitespace-nowrap">
                             {result.netRange}
                           </span>
-                          <span className="text-lg text-emerald-400 font-medium whitespace-nowrap">/ yr</span>
+                          <span className="text-sm text-emerald-600/60 font-medium whitespace-nowrap">/ year</span>
                         </div>
-                        <p className="text-xs text-emerald-400/80 mt-1">Cash in hand after all taxes</p>
+                        <p className="text-xs text-emerald-600/60 mt-1">Cash in hand after all taxes</p>
                       </div>
                     </div>
 
-                    {/* Right: The Dream (ANNUAL SAVINGS) */}
-                    <div className="bg-[#1F2536] rounded-3xl p-8 text-white text-center relative overflow-hidden flex flex-col justify-center min-h-[250px]">
-                      <div className="absolute top-0 left-0 w-full h-full bg-[#7282F3]/10"></div>
+                    {/* Right: The Dream (Refined Dark Card) */}
+                    <div className="bg-[#1F2536] rounded-2xl p-8 text-white text-center relative overflow-hidden flex flex-col justify-center">
                       <div className="relative z-10">
-                        <p className="text-sm font-medium text-white/60 uppercase tracking-widest mb-4">Potential Annual Savings</p>
+                        <p className="text-xs font-medium text-white/50 uppercase tracking-wider mb-4">Potential Annual Savings</p>
                         
-                        <div className="text-4xl md:text-5xl font-bold mb-2 text-[#7282F3]">
+                        <div className="text-3xl md:text-4xl font-bold mb-2 text-[#7282F3] tracking-tight">
                           {result.annualSavingsLakhs}
                         </div>
                         
-                        {/* Fixed Spacing: mb-6 instead of mb-8 */}
-                        <p className="text-sm text-white/80 opacity-75 mb-6">
+                        <p className="text-xs text-white/60 mb-6">
                           (Total Savings per Year)
                         </p>
                         
-                        {/* SIMPLE WHATSAPP BUTTON (Fixed Spacing: added mb-4, added !) */}
+                        {/* BUTTON */}
                         <button 
                           onClick={handleWhatsAppClick}
-                          className="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-bold py-4 px-6 rounded-2xl hover:from-[#20bd5a] hover:to-[#0e7a6e] transition-all duration-300 text-center text-lg shadow-xl shadow-[#25D366]/20 hover:shadow-[#25D366]/40 hover:-translate-y-1 mb-4"
+                          className="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white font-semibold py-3.5 px-6 rounded-xl hover:brightness-110 transition-all duration-200 text-center text-sm shadow-lg mb-4"
                         >
-                          Chat with our Career Counsellor on WhatsApp!
+                          Chat with our Career Counsellor
                         </button>
                         
-                        {/* HIGH ENERGY BOLD TEXT (Fixed Spacing: removed mt-4, added !) */}
-                        <p className="text-xs md:text-sm font-extrabold text-white uppercase tracking-wider animate-pulse drop-shadow-md">
-                           START YOUR GERMANY JOURNEY NOW!
+                        {/* CTA Text */}
+                        <p className="text-[10px] md:text-xs font-bold text-white/90 uppercase tracking-wide">
+                           Start your Germany journey now!
                         </p>
                       </div>
                     </div>
@@ -258,10 +271,9 @@ export default function LeadGenCalculator() {
               </div>
               
               <div className="mt-6 text-center">
-                <p className="text-[10px] md:text-xs text-slate-400 max-w-2xl mx-auto leading-relaxed px-4">
-                  *Disclaimer: These figures are estimates based on projected 2026 TVöD-P tariffs and optimized living costs (thrifty lifestyle). 
-                  Actual savings will vary based on your specific tax class, lifestyle choices, and exact hospital location. 
-                  This tool provides a simulation for planning purposes only.
+                <p className="text-[10px] text-slate-400 max-w-xl mx-auto leading-relaxed px-4">
+                  *Disclaimer: These figures are estimates based on projected 2026 TVöD-P tariffs and optimized living costs. 
+                  Actual savings will vary based on specific tax class and location.
                 </p>
               </div>
 
@@ -270,23 +282,24 @@ export default function LeadGenCalculator() {
         )}
       </div>
 
-      {/* LEAD GEN MODAL */}
+      {/* LEAD GEN MODAL (Cleaner Form) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1F2536]/60 backdrop-blur-[2px] animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative animate-in zoom-in-95 duration-200">
-             <button onClick={handleCloseModal} className="absolute top-4 right-4 text-slate-300 hover:text-slate-500"><X className="w-6 h-6" /></button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1F2536]/40 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-in zoom-in-95 duration-200">
+             <button onClick={handleCloseModal} className="absolute top-4 right-4 text-slate-300 hover:text-slate-500"><X className="w-5 h-5" /></button>
              
              <div className="text-center mb-6">
-               <div className="w-12 h-12 bg-[#Eef2ff] rounded-full flex items-center justify-center mx-auto mb-3">
-                 <Lock className="w-6 h-6 text-[#7282F3]" />
+               <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                 <Lock className="w-5 h-5 text-[#7282F3]" />
                </div>
-               <h3 className="text-2xl font-bold text-slate-800">Unlock Result</h3>
-               <p className="text-sm text-slate-500 mt-1">Enter details to see your 2026 forecast.</p>
+               <h3 className="text-xl font-bold text-slate-800">Unlock Your Result</h3>
+               <p className="text-sm text-slate-500 mt-1">Enter your details to see the 2026 forecast.</p>
              </div>
 
-             <form onSubmit={handleFormSubmit} className="space-y-4">
-                <input required placeholder="Full Name" value={leadData.name} onChange={e => setLeadData({...leadData, name: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7282F3]" />
-                <div className="grid grid-cols-2 gap-4">
+             <form onSubmit={handleFormSubmit} className="space-y-3">
+                <input required placeholder="Full Name" value={leadData.name} onChange={e => setLeadData({...leadData, name: e.target.value})} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-[#7282F3] transition-all text-sm" />
+                
+                <div className="grid grid-cols-2 gap-3">
                    <input 
                       required 
                       type="number" 
@@ -295,13 +308,31 @@ export default function LeadGenCalculator() {
                       placeholder="Age" 
                       value={leadData.age} 
                       onChange={e => setLeadData({...leadData, age: e.target.value})} 
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7282F3]" 
+                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-[#7282F3] transition-all text-sm" 
                    />
-                   <input required type="tel" placeholder="Phone" value={leadData.phone} onChange={e => setLeadData({...leadData, phone: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7282F3]" />
+                   <input required type="tel" placeholder="Phone" value={leadData.phone} onChange={e => setLeadData({...leadData, phone: e.target.value})} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-[#7282F3] transition-all text-sm" />
                 </div>
-                <input required type="email" placeholder="Email Address" value={leadData.email} onChange={e => setLeadData({...leadData, email: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7282F3]" />
-                <button type="submit" disabled={loading} className="w-full bg-[#7282F3] text-white font-bold py-4 rounded-xl mt-2 shadow-lg shadow-blue-500/20">
-                  {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Reveal Results'}
+
+                <input required type="email" placeholder="Email Address" value={leadData.email} onChange={e => setLeadData({...leadData, email: e.target.value})} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-[#7282F3] transition-all text-sm" />
+                
+                {/* STATE DROPDOWN */}
+                <div className="relative">
+                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <select 
+                        required 
+                        value={leadData.state} 
+                        onChange={e => setLeadData({...leadData, state: e.target.value})} 
+                        className="w-full p-3.5 pl-10 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-[#7282F3] text-slate-700 appearance-none text-sm"
+                    >
+                        <option value="" disabled>Select State (India)</option>
+                        {INDIAN_STATES.map(state => (
+                            <option key={state} value={state}>{state}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <button type="submit" disabled={loading} className="w-full bg-[#7282F3] text-white font-semibold py-3.5 rounded-lg mt-2 shadow-md hover:bg-[#5f72eb] transition-colors">
+                  {loading ? <Loader2 className="animate-spin mx-auto w-5 h-5" /> : 'Reveal Results'}
                 </button>
              </form>
           </div>
