@@ -48,9 +48,12 @@ export default function LeadGenCalculator() {
     }
 
     setLoading(true);
+
+    // 1. Calculate the result right now so we have the data to save
+    const currentResult = calculateSimpleRange(profile);
     
-    // We save the lead
-    await saveLeadAction(profile, leadData, 0); 
+    // 2. Send the REAL savings string (e.g., "₹11.6 - ₹18.3 Lakhs")
+    await saveLeadAction(profile, leadData, currentResult.annualSavingsLakhs); 
 
     setTimeout(() => {
       setLoading(false);
