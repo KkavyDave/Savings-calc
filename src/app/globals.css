@@ -1,22 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  /* Exact Brand Colors from your website */
-  --brand-blue: #7282F3;   /* The Hero Section Background */
-  --brand-navy: #1F2536;   /* The Logo/Heading Text */
-  --brand-dark: #0F172A;   /* The 'Enquire Now' Button */
-  --bg-color: #F8F9FC;     /* Light Gray Page Background */
+  /* STITCH / GOOGLE STYLE PALETTE */
+  --primary: #5E72E4;       /* Vibrant Blue/Purple */
+  --secondary: #2B3656;     /* Deep Navy (Text & Dark Backgrounds) */
+  --accent: #E8ECF7;        /* Soft Blue (Backgrounds/hovers) */
+  --surface: #FFFFFF;       /* Pure White cards */
+  --bg-page: #F4F7FE;       /* Very light cool gray/blue for the page background */
+  
+  --font-albert: 'Albert Sans', sans-serif;
 }
 
 body {
-  color: var(--brand-navy);
-  background-color: var(--bg-color);
+  color: var(--secondary);
+  background-color: var(--bg-page);
   font-family: var(--font-albert), sans-serif;
+  -webkit-font-smoothing: antialiased; /* Makes text look sharper */
 }
 
-/* Custom Range Slider (Brand Blue) */
+/* Custom Range Slider (Using Brand Color) */
 input[type="range"] {
-  accent-color: var(--brand-blue);
+  accent-color: var(--primary);
 }
 
 /* Smooth Fade In Animation */
