@@ -110,7 +110,7 @@ export default function LeadGenCalculator() {
   const handleWhatsAppClick = () => {
     if (!result) return;
     const text = `Hi Taldo! I checked my salary potential for ${result.calculatedCity}. It shows I can save ${result.annualSavingsLakhs}/year. I want to start my Germany journey!`;
-    window.open(`https://wa.me/919818956623?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://wa.me/917977905295?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleShareClick = () => {
