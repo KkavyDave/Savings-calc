@@ -154,8 +154,8 @@ export default function LeadGenCalculator() {
                      <select className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none font-bold text-[#2B3656] text-sm" value={profile.qualification} onChange={(e) => setProfile({...profile, qualification: e.target.value as any})}>
                        <option value="BSC Nursing">B.Sc Nursing</option>
                        <option value="MSC Nursing">M.Sc Nursing</option>
-                       <option value="GNM Nursing">GNM Diploma</option>
-                       <option value="Post BSC Nursing">Post Basic B.Sc</option>
+                       <option value="GNM Nursing">GNM Nursing</option>
+                       <option value="Post BSC Nursing">Post B.Sc Nursing</option>
                      </select>
                    </div>
                    <div className="space-y-2">
